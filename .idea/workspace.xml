@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fc109806-50fc-4d1d-a0da-1017f2695775" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/IndRNN.py" afterPath="$PROJECT_DIR$/IndRNN.py" />
-      <change beforePath="$PROJECT_DIR$/train.py" afterPath="$PROJECT_DIR$/train.py" />
-    </list>
+    <list default="true" id="fc109806-50fc-4d1d-a0da-1017f2695775" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
