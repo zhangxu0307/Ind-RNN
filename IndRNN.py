@@ -12,21 +12,20 @@ class IndRNNCell(nn.Module):
         # self.W = nn.Parameter(th.randn((inputDim, hiddenDim)))
         # self.b = nn.Parameter(th.randn(hiddenDim))
         self.i2h = nn.Linear(inputDim, hiddenDim, bias=True)
-        self.u = nn.Parameter(th.diag(hiddenDim, hiddenDim))
+        self.u = nn.Parameter(th.diag(th.randn(hiddenDim)))
         self.act = F.relu if nonlinearity =="relu" else nonlinearity
+        self.BN1 = nn.BatchNorm1d(hiddenDim)
+        self.BN2 = nn.BatchNorm1d(hiddenDim)
 
     def forward(self, input, hidden):
-        print(input.size())
         weightOutput = self.i2h(input)
-        print(weightOutput.size())
-        #bnOutput = nn.BatchNorm1d(weightOutput)
-        recurrentOutpt = weightOutput + self.u @ hidden
+        bnOutput = self.BN1(weightOutput)
+        recurrentOutpt = bnOutput + hidden @ self.u # 这里用对角化矩阵相乘模拟hadamard积
         activityOutput = self.act(recurrentOutpt)
-        #return nn.BatchNorm1d(activityOutput)
-        print(activityOutput.size())
-        return activityOutput
+        return self.BN2(activityOutput)
 
-class  IndRNNModel(nn.Module):
+
+class IndRNNModel(nn.Module):
 
     def __init__(self, inputDim, hiddenNum, outputDim, layerNum):
 
