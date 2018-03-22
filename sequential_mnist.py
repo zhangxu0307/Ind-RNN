@@ -16,8 +16,8 @@ def loadSequentialMNIST(batchSize):
     train_set = datasets.MNIST(root=root, train=True, transform=trans, download=True)
     test_set = datasets.MNIST(root=root, train=False, transform=trans)
 
-    train_loader = th.utils.data.DataLoader(dataset=train_set, batch_size=batchSize, shuffle=True)
-    test_loader = th.utils.data.DataLoader(dataset=test_set, batch_size=batchSize, shuffle=False)
+    train_loader = th.utils.data.DataLoader(dataset=train_set, batch_size=batchSize, shuffle=True, drop_last=True)
+    test_loader = th.utils.data.DataLoader(dataset=test_set, batch_size=batchSize, shuffle=False, drop_last=True)
 
     print ('==>>> total trainning batch number: {}'.format(len(train_loader)))
     print ('==>>> total testing batch number: {}'.format(len(test_loader)))

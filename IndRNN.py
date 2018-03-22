@@ -6,14 +6,14 @@ from torch.autograd import Variable
 
 class IndRNNCell(nn.Module):
 
-    def __init__(self, inputDim, hiddenDim, nonlinearity="relu"):
+    def __init__(self, inputDim, hiddenDim, layerNum, nonlinearity=None):
 
         super().__init__()
         # self.W = nn.Parameter(th.randn((inputDim, hiddenDim)))
         # self.b = nn.Parameter(th.randn(hiddenDim))
         self.i2h = nn.Linear(inputDim, hiddenDim, bias=True)
         self.u = nn.Parameter(th.diag(th.randn(hiddenDim)))
-        self.act = F.relu if nonlinearity =="relu" else nonlinearity
+        self.act = F.relu if nonlinearity == None else nonlinearity
         self.BN1 = nn.BatchNorm1d(hiddenDim)
         self.BN2 = nn.BatchNorm1d(hiddenDim)
 
@@ -23,6 +23,22 @@ class IndRNNCell(nn.Module):
         recurrentOutpt = bnOutput + hidden @ self.u # 这里用对角化矩阵相乘模拟hadamard积
         activityOutput = self.act(recurrentOutpt)
         return self.BN2(activityOutput)
+
+# class ResidualIndeRNNCell(nn.Module):
+#
+#     def __init__(self, inputDim, hiddenDim, nonlinearity=None):
+#
+#         super().__init__()
+#
+#         self.i2h1 = nn.Linear(inputDim, hiddenDim, bias=True)
+#         self.u = nn.Parameter(th.diag(th.randn(hiddenDim)))
+#         self.act = F.relu if nonlinearity == None else nonlinearity
+#         self.BN1 = nn.BatchNorm1d(hiddenDim)
+#         self.BN2 = nn.BatchNorm1d(hiddenDim)
+#
+#     def forward(self, input, hidden):
+#         pass
+
 
 
 class IndRNNModel(nn.Module):
@@ -35,21 +51,37 @@ class IndRNNModel(nn.Module):
         self.inputDim = inputDim
         self.outputDim = outputDim
         self.layerNum = layerNum
-        self.IndRNNCell = IndRNNCell(inputDim, hiddenNum)
+        self.IndRNNCell = IndRNNCell(inputDim, hiddenNum, layerNum)
         self.fc = nn.Linear(self.hiddenNum, self.outputDim)
 
     def forward(self, x, batchSize):
 
-        h0 = Variable(th.zeros(batchSize, self.hiddenNum))
-        h_current = h0
-        h_last = h0
+        # h0 = Variable(th.zeros(batchSize, self.hiddenNum))
+        # h_current = h0
+        # h_last = h0
+        # inputLen = x.data.size()[1]
+        #
+        # for i in range(inputLen):
+        #     current_input = x[:, i, :]
+        #     h_current = self.IndRNNCell(current_input, h_last)
+        #
+        # fcOutput = self.fc(h_current)
+        #
+        # return nn.Softmax()(fcOutput)
+
+        h0List = [Variable(th.zeros(batchSize, self.hiddenNum))]*self.layerNum
+        hCurrentList = h0List
+        hLastList = h0List
+
         inputLen = x.data.size()[1]
 
         for i in range(inputLen):
             current_input = x[:, i, :]
-            h_current = self.IndRNNCell(current_input, h_last)
+            for j in range(self.layerNum):
+                hCurrentList[j] = self.IndRNNCell(current_input, hLastList[j])
+                current_input = hCurrentList[j]
 
-        fcOutput = self.fc(h_current)
+        fcOutput = self.fc(hLastList[-1])
 
         return nn.Softmax()(fcOutput)
 
