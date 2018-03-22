@@ -6,12 +6,15 @@ from torch.autograd import Variable
 
 class IndRNNCell(nn.Module):
 
-    def __init__(self, inputDim, hiddenDim, layerNum, nonlinearity=None):
+    def __init__(self, inputDim, hiddenDim, middle=False, nonlinearity=None):
 
         super().__init__()
         # self.W = nn.Parameter(th.randn((inputDim, hiddenDim)))
         # self.b = nn.Parameter(th.randn(hiddenDim))
-        self.i2h = nn.Linear(inputDim, hiddenDim, bias=True)
+        if middle:
+            self.i2h = nn.Linear(hiddenDim, hiddenDim, bias=True) # 如果是中间的cell，输入权重不同
+        else:
+            self.i2h = nn.Linear(inputDim, hiddenDim, bias=True)
         self.u = nn.Parameter(th.diag(th.randn(hiddenDim)))
         self.act = F.relu if nonlinearity == None else nonlinearity
         self.BN1 = nn.BatchNorm1d(hiddenDim)
@@ -51,7 +54,8 @@ class IndRNNModel(nn.Module):
         self.inputDim = inputDim
         self.outputDim = outputDim
         self.layerNum = layerNum
-        self.IndRNNCell = IndRNNCell(inputDim, hiddenNum, layerNum)
+        self.IndRNNCellList = [IndRNNCell(inputDim, hiddenNum, middle=False)]
+        self.IndRNNCellList += [IndRNNCell(inputDim, hiddenNum, middle=True)]*(self.layerNum-1)
         self.fc = nn.Linear(self.hiddenNum, self.outputDim)
 
     def forward(self, x, batchSize):
@@ -75,10 +79,10 @@ class IndRNNModel(nn.Module):
 
         inputLen = x.data.size()[1]
 
-        for i in range(inputLen):
+        for i in range(inputLen): # 多层layer
             current_input = x[:, i, :]
             for j in range(self.layerNum):
-                hCurrentList[j] = self.IndRNNCell(current_input, hLastList[j])
+                hCurrentList[j] = self.IndRNNCellList[j](current_input, hLastList[j])
                 current_input = hCurrentList[j]
 
         fcOutput = self.fc(hLastList[-1])

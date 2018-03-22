@@ -39,7 +39,7 @@ def train(model, batchSize, epoch, useCuda = False):
             loss.backward()
             optimizer.step()
 
-            print(batch_idx)
+            print(loss.data[0])
 
             if (batch_idx + 1) % checkPoint == 0 or (batch_idx + 1) == len(trainLoader):
                 print('==>>> epoch: {}, batch index: {}, train loss: {:.6f}'.format( i, batch_idx + 1, sum_loss/checkPoint))
@@ -68,8 +68,8 @@ if __name__ == '__main__':
 
     epoch = 10
     batchSize = 128
-    model = IndRNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
-    #model = RNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
-    #model = GRUModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=3)
-    model = LSTMModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
+    model = IndRNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=2)
+    # model = RNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
+    # model = GRUModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=3)
+    # model = LSTMModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
     train(model, batchSize, epoch, useCuda=False)
