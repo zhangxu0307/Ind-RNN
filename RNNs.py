@@ -40,18 +40,15 @@ class RNNModel(BaseModel):
 
         super(RNNModel, self).__init__(inputDim, hiddenNum, outputDim, layerNum, cell="RNN")
 
-    # def init_hidden(self, batchSize):
-    #
-    #     return hidden
 
     def forward(self, x, batchSize):
 
-        h0 = Variable(torch.zeros(self.layerNum * 1, batchSize, self.hiddenNum))
-        rnnOutput, hn = self.cell(x, h0)
-        hn = hn.view(self.layerNum, batchSize, self.hiddenNum) # layernum, batch, hidden
-        lastHidden = hn[-1, :, :].view(batchSize, self.hiddenNum)  # 最后一个状态的最后一层
-        fcOutput = self.fc(lastHidden)
-        out = nn.Softmax()(fcOutput)
+        rnnOutput, hn = self.cell(x,)
+
+        rnnOutput = rnnOutput[:, -1, :].squeeze()
+
+        fcOutput = self.fc(rnnOutput)
+        out = F.log_softmax(fcOutput)
 
         return out
 
@@ -60,18 +57,17 @@ class RNNModel(BaseModel):
 class LSTMModel(BaseModel):
 
     def __init__(self, inputDim, hiddenNum, outputDim, layerNum):
-        super(LSTMModel, self).__init__(inputDim, hiddenNum, outputDim, layerNum, cell="LSTM")
 
+        super(LSTMModel, self).__init__(inputDim, hiddenNum, outputDim, layerNum, cell="LSTM")
 
     def forward(self, x, batchSize):
 
-        h0 = Variable(torch.zeros(self.layerNum * 1, batchSize, self.hiddenNum))
-        c0 = Variable(torch.zeros(self.layerNum * 1, batchSize, self.hiddenNum))
-        rnnOutput, hn = self.cell(x, (h0, c0))  # rnnOutput 12,20,50 hn 1,20,50
-        hn = hn[0].view(self.layerNum, batchSize, self.hiddenNum)
-        lastHidden = hn[-1, :, :].view(batchSize, self.hiddenNum)
-        fcOutput = self.fc(lastHidden)
-        out = nn.Softmax()(fcOutput)
+        rnnOutput, hn = self.cell(x,)
+
+        rnnOutput = rnnOutput[:, -1, :].squeeze()
+
+        fcOutput = self.fc(rnnOutput)
+        out = F.log_softmax(fcOutput)
 
         return out
 
@@ -83,11 +79,10 @@ class GRUModel(BaseModel):
 
     def forward(self, x, batchSize):
 
-        h0 = Variable(torch.zeros(self.layerNum * 1, batchSize, self.hiddenNum))
-        rnnOutput, hn = self.cell(x, h0)  # rnnOutput 12,20,50 hn 1,20,50
-        hn = hn.view(self.layerNum, batchSize, self.hiddenNum)
-        lastHidden = hn[-1, :, :].view(batchSize, self.hiddenNum)
-        fcOutput = self.fc(lastHidden)
-        out = nn.Softmax()(fcOutput)
+        rnnOutput, hn = self.cell(x)
+        rnnOutput = rnnOutput[:, -1, :].squeeze()
+
+        out = self.fc(rnnOutput)
+        out = F.log_softmax(out)
 
         return out

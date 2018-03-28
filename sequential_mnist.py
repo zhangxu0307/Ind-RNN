@@ -11,7 +11,8 @@ def loadSequentialMNIST(batchSize):
 
     trans = transforms.Compose(
                  [torchvision.transforms.ToTensor(),
-                  torchvision.transforms.Lambda(lambda x: x.view(-1,1))
+                  transforms.Normalize((0.1307,), (0.3081,)),
+                  torchvision.transforms.Lambda(lambda x: x.view(28, 28))
                  ])
     train_set = datasets.MNIST(root=root, train=True, transform=trans, download=True)
     test_set = datasets.MNIST(root=root, train=False, transform=trans)

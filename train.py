@@ -17,8 +17,8 @@ def train(model, batchSize, epoch, useCuda = False):
 
     checkPoint = 10
 
-    optimizer = optim.RMSprop(model.parameters(), lr=0.05, momentum=0.9)
-    ceriation = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.01, )
+    ceriation = nn.NLLLoss()
     trainLoader, testLoader = loadSequentialMNIST(batchSize=batchSize)
 
     for i in range(epoch):
@@ -39,8 +39,6 @@ def train(model, batchSize, epoch, useCuda = False):
             loss.backward()
             optimizer.step()
 
-            print(loss.data[0])
-
             if (batch_idx + 1) % checkPoint == 0 or (batch_idx + 1) == len(trainLoader):
                 print('==>>> epoch: {}, batch index: {}, train loss: {:.6f}'.format( i, batch_idx + 1, sum_loss/checkPoint))
                 sum_loss = 0.0
@@ -49,9 +47,10 @@ def train(model, batchSize, epoch, useCuda = False):
         correct_cnt, sum_loss = 0, 0
         total_cnt = 0
         for batch_idx, (x, target) in enumerate(testLoader):
-            if useCuda:
-                x, targe = x.cuda(), target.cuda()
+
             x, target = Variable(x, volatile=True), Variable(target, volatile=True)
+            if useCuda:
+                x, target = x.cuda(), target.cuda()
             out = model(x, batchSize)
             loss = ceriation(out, target)
             _, pred_label = th.max(out.data, 1)
@@ -62,14 +61,13 @@ def train(model, batchSize, epoch, useCuda = False):
                 print('==>>> epoch: {}, batch index: {}, test loss: {:.6f}, acc: {:.3f}'.format(
                     i, batch_idx + 1, sum_loss/batch_idx, correct_cnt * 1.0 / total_cnt))
 
-    th.save(model.state_dict(), model.name())
 
 if __name__ == '__main__':
 
-    epoch = 10
+    epoch = 5
     batchSize = 128
-    model = IndRNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=2)
-    # model = RNNModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
-    # model = GRUModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=3)
-    # model = LSTMModel(inputDim=1, hiddenNum=256, outputDim=10, layerNum=1)
-    train(model, batchSize, epoch, useCuda=False)
+    model = IndRNNModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
+    # model = RNNModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
+    # model = GRUModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
+    # model = LSTMModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
+    train(model, batchSize, epoch, useCuda=True)
