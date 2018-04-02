@@ -1,3 +1,4 @@
 RNN 0.945
 GRU 0.955 epoch=1
 LSTM 0.979 epoch=2
+IndRNN epoch=10  layer=3 0.932

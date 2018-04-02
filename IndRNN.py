@@ -22,11 +22,12 @@ class IndRNNCell(nn.Module):
 
     def forward(self, input, hidden):
 
-        weightOutput = self.i2h(input)
-        bnOutput = self.BN1(weightOutput)
-        recurrentOutpt = bnOutput + hidden @ self.u # 这里用对角化矩阵相乘模拟hadamard积
-        activityOutput = self.act(recurrentOutpt)
-        return self.BN2(activityOutput)
+        out = self.i2h(input)
+        out = self.BN1(out)
+        out = out + hidden @ self.u # 这里用对角化矩阵相乘模拟hadamard积
+        out = self.act(out)
+        out = self.BN2(out)
+        return  out
 
 
 
@@ -41,13 +42,14 @@ class IndRNNModel(nn.Module):
         self.outputDim = outputDim
         self.layerNum = layerNum
         if th.cuda.is_available():
+            self.IndRNNCell = IndRNNCell(inputDim, hiddenNum, middle=False).cuda()
             self.IndRNNCellList = [IndRNNCell(inputDim, hiddenNum, middle=False).cuda()]
             self.IndRNNCellList += [IndRNNCell(inputDim, hiddenNum, middle=True).cuda()]*(self.layerNum-1)
         self.fc = nn.Linear(self.hiddenNum, self.outputDim)
 
     def forward(self, x, batchSize):
 
-        # h0 = Variable(th.zeros(batchSize, self.hiddenNum))
+        # h0 = Variable(th.zeros(batchSize, self.hiddenNum)).cuda()
         # h_current = h0
         # h_last = h0
         # inputLen = x.data.size()[1]
@@ -58,7 +60,7 @@ class IndRNNModel(nn.Module):
         #
         # fcOutput = self.fc(h_current)
         #
-        # return nn.Softmax()(fcOutput)
+        # return F.log_softmax(fcOutput)
 
         h0List = [Variable(th.zeros(batchSize, self.hiddenNum).cuda())]*self.layerNum
         hCurrentList = h0List

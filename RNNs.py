@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
+from IndRNN2 import *
 
 torch.manual_seed(1)
 
@@ -29,6 +30,8 @@ class BaseModel(nn.Module):
             self.cell = nn.GRU(input_size=self.inputDim, hidden_size=self.hiddenNum,
                                 num_layers=self.layerNum, dropout=0.0,
                                  batch_first=True, )
+        if cell == "INDRNN":
+            self.cell = IndRNN(input_size=self.inputDim, hidden_size=self.hiddenNum, n_layer= self.layerNum)
         print("cell type:", self.cell)
         self.fc = nn.Linear(self.hiddenNum, self.outputDim)
 
@@ -80,6 +83,24 @@ class GRUModel(BaseModel):
     def forward(self, x, batchSize):
 
         rnnOutput, hn = self.cell(x)
+        rnnOutput = rnnOutput[:, -1, :].squeeze()
+
+        out = self.fc(rnnOutput)
+        out = F.log_softmax(out)
+
+        return out
+
+class IndRNNModel(BaseModel):
+
+    def __init__(self, inputDim, hiddenNum, outputDim, layerNum):
+        super(IndRNNModel, self).__init__(inputDim, hiddenNum, outputDim, layerNum, cell="INDRNN")
+
+    def forward(self, x, batchSize):
+
+        #h0 = torch.zeros(self.layerNum*1, batchSize, 28)
+
+        rnnOutput = self.cell(x,)
+
         rnnOutput = rnnOutput[:, -1, :].squeeze()
 
         out = self.fc(rnnOutput)

@@ -7,7 +7,8 @@ from torchvision import datasets
 import torchvision.transforms as transforms
 from sequential_mnist import loadSequentialMNIST
 from IndRNN import IndRNNModel
-from RNNs import *
+from RNNs import LSTMModel, GRUModel, RNNModel
+    #IndRNNModel
 
 
 def train(model, batchSize, epoch, useCuda = False):
@@ -64,9 +65,9 @@ def train(model, batchSize, epoch, useCuda = False):
 
 if __name__ == '__main__':
 
-    epoch = 5
+    epoch = 10
     batchSize = 128
-    model = IndRNNModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
+    model = IndRNNModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=3)
     # model = RNNModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
     # model = GRUModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
     # model = LSTMModel(inputDim=28, hiddenNum=256, outputDim=10, layerNum=1)
